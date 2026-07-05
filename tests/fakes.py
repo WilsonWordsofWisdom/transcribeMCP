@@ -1,3 +1,6 @@
+import io
+
+
 class FakeMCP:
     """Stub for FastMCP: `.tool()` returns the function unchanged, mirroring the
     real `mcp.server.fastmcp.FastMCP.tool()` decorator's identity behavior."""
@@ -32,6 +35,13 @@ class FakeTranscribeClient:
         return self._record_and_respond("get_json", path, params=params)
 
     def post_form(self, path, data=None, files=None):
+        if files is not None:
+            snapshot = {}
+            for key, value in files.items():
+                filename, file_obj, content_type = value
+                content = file_obj.read() if hasattr(file_obj, "read") else file_obj
+                snapshot[key] = (filename, io.BytesIO(content), content_type)
+            files = snapshot
         return self._record_and_respond("post_form", path, data=data, files=files)
 
     def put_json(self, path, json_body=None):
